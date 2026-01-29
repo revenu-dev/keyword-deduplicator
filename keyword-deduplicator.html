@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keyword Deduplicator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #fbf7f4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(49, 119, 115, 0.1);
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 540px;
+    }
+
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      color: #317773;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-family: 'Montserrat', sans-serif;
+      color: #333;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #317773;
+      box-shadow: 0 0 0 3px rgba(49, 119, 115, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 200px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .paste-hint {
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 0.5rem;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 0.875rem 1.5rem;
+      background-color: #317773;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #285f5c;
+    }
+
+    button[type="submit"]:active {
+      transform: scale(0.98);
+    }
+
+    button[type="submit"]:disabled {
+      background-color: #999;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    .status.success {
+      display: block;
+      background-color: rgba(49, 119, 115, 0.1);
+      color: #317773;
+    }
+
+    .status.error {
+      display: block;
+      background-color: #fef2f2;
+      color: #dc2626;
+    }
+
+    .advanced-section {
+      margin-bottom: 1.5rem;
+      border: 1px solid #eee;
+      border-radius: 8px;
+    }
+
+    .advanced-section summary {
+      padding: 0.875rem 1rem;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .advanced-section summary:hover {
+      color: #317773;
+    }
+
+    .advanced-section[open] summary {
+      border-bottom: 1px solid #eee;
+    }
+
+    .advanced-content {
+      padding: 1rem;
+    }
+
+    .advanced-content .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .advanced-content input[type="text"],
+    .advanced-content textarea {
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Keyword Deduplicator</h1>
+    <p class="subtitle">Paste the keyword data. Make sure it has the columns for campaign, keyword, cost, and conversions. You may include verdicts.</p>
+
+    <form id="deduplicatorForm">
+      <div class="form-group">
+        <label for="clientName">Client Name</label>
+        <input type="text" id="clientName" name="clientName" placeholder="e.g. Acme Corp" required>
+      </div>
+
+      <div class="form-group">
+        <label for="keywordsData">Keyword Data</label>
+        <textarea id="keywordsData" name="keywordsData" placeholder="Paste rows from Google Sheets here (include header row)..." required></textarea>
+        <p class="paste-hint">Required columns: Campaign, Keyword, Cost, Conversions. Optional: Intent.</p>
+      </div>
+
+      <details class="advanced-section">
+        <summary>I know what I'm doing</summary>
+        <div class="advanced-content">
+          <div class="form-group">
+            <label for="instructions">Additional Instructions</label>
+            <textarea id="instructions" name="instructions" placeholder="e.g. Prioritize keeping keywords with conversions..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="webhookUrl">Relay Webhook URL</label>
+            <input type="text" id="webhookUrl" name="webhookUrl" value="https://hook.relay.app/api/v1/playbook/cmkyhp49t0dae0olz3g6m0qyz/trigger/-feWKnIBwObKhd28AwaT2g">
+          </div>
+        </div>
+      </details>
+
+      <button type="submit" id="submitBtn">Submit for Deduplication</button>
+
+      <div class="status" id="status"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('deduplicatorForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const status = document.getElementById('status');
+
+    // Column normalization
+    const COLUMN_MAP = {
+      // Campaign
+      'campaign': 'campaign',
+      'campaign name': 'campaign',
+      'campaign_name': 'campaign',
+      // Keyword
+      'keyword': 'searchKeyword',
+      'keywords': 'searchKeyword',
+      'search keyword': 'searchKeyword',
+      'search term': 'searchKeyword',
+      'search_keyword': 'searchKeyword',
+      'search_term': 'searchKeyword',
+      // Cost
+      'cost': 'cost',
+      'spend': 'cost',
+      'total cost': 'cost',
+      'total spend': 'cost',
+      // Conversions
+      'conversions': 'conversions',
+      'conversion': 'conversions',
+      'all conversions': 'conversions',
+      'all conv.': 'conversions',
+      'total conversions': 'conversions',
+      'conv': 'conversions',
+      'convs': 'conversions',
+      // Intent (optional)
+      'intent': 'intent'
+    };
+
+    const REQUIRED_COLUMNS = ['campaign', 'searchKeyword', 'cost', 'conversions'];
+
+    function normalizeHeader(header) {
+      const cleaned = header.trim().toLowerCase();
+      return COLUMN_MAP[cleaned] || null;
+    }
+
+    function parseNumber(value) {
+      if (!value) return 0;
+      // Remove currency symbols, commas, and whitespace
+      const cleaned = value.toString().replace(/[$€£,\s]/g, '');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? 0 : num;
+    }
+
+    function parseTSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length < 2) return { data: [], missingColumns: REQUIRED_COLUMNS };
+
+      const rawHeaders = lines[0].split('\t');
+      const headerMapping = rawHeaders.map(h => normalizeHeader(h));
+
+      // Check for missing required columns
+      const foundColumns = headerMapping.filter(h => h !== null);
+      const missingColumns = REQUIRED_COLUMNS.filter(col => !foundColumns.includes(col));
+
+      if (missingColumns.length > 0) {
+        // Map back to user-friendly names
+        const friendlyNames = {
+          'campaign': 'Campaign',
+          'searchKeyword': 'Keyword',
+          'cost': 'Cost',
+          'conversions': 'Conversions'
+        };
+        return { 
+          data: [], 
+          missingColumns: missingColumns.map(col => friendlyNames[col] || col) 
+        };
+      }
+
+      const timestamp = Date.now();
+      const data = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split('\t');
+        const row = {
+          rowId: `${timestamp}-${i}`
+        };
+
+        headerMapping.forEach((normalizedName, index) => {
+          if (normalizedName && values[index] !== undefined) {
+            row[normalizedName] = values[index].trim();
+          }
+        });
+
+        // Skip rows without a keyword
+        if (!row.searchKeyword) continue;
+
+        // Parse numeric fields
+        row.cost = parseNumber(row.cost);
+        row.conversions = parseNumber(row.conversions);
+
+        // Calculate CPL
+        row.cpl = row.conversions > 0 ? row.cost / row.conversions : 0;
+
+        // Ensure optional fields exist (empty string if not present)
+        if (!row.intent) row.intent = '';
+
+        data.push(row);
+      }
+
+      return { data, missingColumns: [] };
+    }
+
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const webhookUrl = document.getElementById('webhookUrl').value.trim();
+      const clientName = document.getElementById('clientName').value.trim();
+      const instructions = document.getElementById('instructions').value.trim();
+      const keywordsData = document.getElementById('keywordsData').value.trim();
+
+      if (!keywordsData) {
+        showStatus('Please paste keyword data', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing...';
+
+      try {
+        const { data: rows, missingColumns } = parseTSV(keywordsData);
+
+        if (missingColumns.length > 0) {
+          throw new Error(`Missing required columns: ${missingColumns.join(', ')}`);
+        }
+
+        if (rows.length === 0) {
+          throw new Error('No valid data rows found');
+        }
+
+        const payload = {
+          rows: rows,
+          clientName: clientName,
+          additionalInstructions: instructions || null
+        };
+
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Webhook returned ${response.status}`);
+        }
+
+        showStatus(`Submitted ${rows.length} keywords for ${clientName}. Check Slack for results.`, 'success');
+
+      } catch (err) {
+        showStatus(`Error: ${err.message}`, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Deduplication';
+      }
+    });
+
+    function showStatus(message, type) {
+      status.textContent = message;
+      status.className = `status ${type}`;
+    }
+  </script>
+</body>
+</html>
